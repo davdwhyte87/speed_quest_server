@@ -1,0 +1,22 @@
+
+
+## Login request
+
+POST http://localhost:6000/visa_application HTTP/1.1
+Content-Type: appplication/json
+
+{
+    
+    "Name" :"John Roller",
+    "Phone" :"089383093" , 
+	"Email":"john@x.com" ,  
+	"Location" :"Nigeria",
+	"Profession" :"Writer" ,
+	"ApplicationAnswers": [
+        {
+            "QuestionId":"kifosfmslkmvs",
+            "YesNoAnswer": true
+        }
+    ] 
+}
+
