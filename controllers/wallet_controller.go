@@ -107,4 +107,13 @@ func (wc *WalletController) UpdateWallet() gin.HandlerFunc{
 			Data: nil,
 		})
 	}
+
+
+	// create wallet 
+	
+	// transfer 
+
+	// get all blocks 
+
+	
 }

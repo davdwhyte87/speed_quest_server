@@ -95,6 +95,7 @@ func (psc *PlayerStatContoller) UpdatePlayerStats() gin.HandlerFunc {
 
 		err = psc.PlayerStatsDAO.Update(player_stats.Id, player_stats)
 		if err != nil {
+			utils.Logger.Error().Msg(err.Error())
 			ctx.JSON(http.StatusInternalServerError, responses.GenericResponse{
 				Status:  http.StatusInternalServerError,
 				Data:   nil ,
@@ -111,4 +112,25 @@ func (psc *PlayerStatContoller) UpdatePlayerStats() gin.HandlerFunc {
 	}
 }
 
+// get top players 
+func (psc *PlayerStatContoller) GetLeaderBoard() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		stats, err := psc.PlayerStatsDAO.GetLeaderBoard()
+		if err !=nil{
+			utils.Logger.Error().Msg(err.Error())
+			ctx.JSON(http.StatusInternalServerError, responses.GenericResponse{
+				Status:  http.StatusInternalServerError,
+				Data:   nil ,
+				Message: "Error updating stats",
+			})
+			return 
+		}
+
+		ctx.JSON(http.StatusOK, responses.GenericResponse{
+			Status:  http.StatusOK,
+			Data:    map[string]interface{}{"data": stats},
+			Message: "ok",
+		})	
+	}
+}
 

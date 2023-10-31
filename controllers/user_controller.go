@@ -97,6 +97,7 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 		playerStats.HighScore = 0
 		playerStats.LastScore = 0
 		playerStats.UserID = newUser.Id
+		playerStats.UserName = newUser.UserName
 		err = userController.FactoryDAO.Insert(models.PlayerStatsCollection, playerStats)
 		if err != nil {
 			utils.Logger.Error().Msg(err.Error())
@@ -114,6 +115,21 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 		wallet.CreatedAt = time.Now().String()
 		wallet.UpdatedAt = time.Now().String()
 		wallet.UserId = newUser.Id
+		wallet.Address = newUser.UserName
+		wallet.Email = newUser.Email
+		wallet.Version = 0.1
+		// create new block
+		var block models.Block 
+		block.Amount = 0
+		block.Date = time.Now().String()
+		block.Id = uuid.NewString()
+		block.PreviousHash = "000000000000"
+		block.ReceiverAddress = wallet.Address
+		block.SenderAddress = "000000000000"
+
+		// add block to wallet blocks 
+		wallet.Blocks = append(wallet.Blocks, block)
+		
 		err = userController.FactoryDAO.Insert(models.WalletCollection, wallet)
 		if err != nil {
 			utils.Logger.Error().Msg(err.Error())
@@ -286,10 +302,9 @@ func (userController *UserController) Login() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, responses.GenericResponse{
 			Status:  http.StatusOK,
-			Data:    map[string]interface{}{"token": token},
+			Data:    map[string]interface{}{"token": token, "user":user.Safe()},
 			Message: "Logged in!",
 		})
-
 	}
 }
 

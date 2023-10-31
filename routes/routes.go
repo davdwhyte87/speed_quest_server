@@ -11,6 +11,7 @@ var (
 	userController      *controllers.UserController
 	playerStatContoller *controllers.PlayerStatContoller
 	walletController    *controllers.WalletController
+	serverController    *controllers.ServerController
 )
 
 func initializeController() {
@@ -29,10 +30,14 @@ func initializeController() {
 		FactoryDAO: factoryDAO,
 		WalletDAO:  WalletDAO,
 	}
+	serverController = &controllers.ServerController{
+
+	}
 }
 func Routes(router *gin.Engine) {
 	// initialize controllers
 	initializeController()
+	router.GET("/leader_board", playerStatContoller.GetLeaderBoard())
 	userRouter := router.Group("/user")
 	userRouter.POST("/create", userController.CreateUser())
 	userRouter.POST("/get_code", userController.GetCode())
@@ -44,11 +49,13 @@ func Routes(router *gin.Engine) {
 
 	playerStatsRouter := router.Group("/stats")
 	playerStatsRouter.POST("/update/:id", playerStatContoller.UpdatePlayerStats())
-	playerStatsRouter.GET("/get/:id", playerStatContoller.GetPlayerStat())
+	playerStatsRouter.Use(middlewares.PlayerAuth(*AuthDAO)).GET("/get", playerStatContoller.GetPlayerStat())
 
 	walletRouter := router.Group("/wallet")
 	walletRouter.Use(middlewares.PlayerAuth(*AuthDAO))
 	walletRouter.GET("/get", walletController.GetWallet())
 	walletRouter.POST("/update", walletController.UpdateWallet())
 
+	serverRouter := router.Group("/server")
+	serverRouter.GET("/latest_android_version", serverController.GetLatestAndroidAppVersion())
 }
