@@ -2,8 +2,10 @@ package main
 
 import (
 	// "context"
+	"os"
 	"speed_quest_server/configs"
 	"speed_quest_server/utils"
+
 	// "speed_quest_server/dao"
 	"speed_quest_server/routes"
 
@@ -15,9 +17,9 @@ import (
 
 // )
 func main() {
-	// setup logging 
+	// setup logging
 	utils.InitLogger()
-	
+
 	router := gin.Default()
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"data": "Armorgens API running ..."})
@@ -34,6 +36,6 @@ func main() {
 	// routes setup
 	routes.Routes(router)
 	routes.VisaRoutes(router)
-
-	router.Run("localhost:6000")
+	port := os.Getenv("PORT")
+	router.Run("localhost:" + port)
 }
