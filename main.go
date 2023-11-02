@@ -42,7 +42,7 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
-	router.Run("localhost:" + port)
+	router.Run(":" + port)
 }
 
 func CORSMiddleware() gin.HandlerFunc {
