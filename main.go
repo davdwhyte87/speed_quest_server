@@ -21,7 +21,9 @@ func main() {
 	utils.InitLogger()
 
 	router := gin.Default()
+
 	router.Use(CORSMiddleware())
+	router.Static("/assets", "./assets")
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(200, gin.H{"data": "Armorgens API running ..."})
 	})
@@ -43,6 +45,7 @@ func main() {
 		port = "8080"
 	}
 	router.Run(":" + port)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {

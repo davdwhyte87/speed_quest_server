@@ -30,14 +30,13 @@ func initializeController() {
 		FactoryDAO: factoryDAO,
 		WalletDAO:  WalletDAO,
 	}
-	serverController = &controllers.ServerController{
-
-	}
+	serverController = &controllers.ServerController{}
 }
 func Routes(router *gin.Engine) {
 	// initialize controllers
 	initializeController()
 	router.GET("/leader_board", playerStatContoller.GetLeaderBoard())
+	router.GET("/test_email", playerStatContoller.TestEmail())
 	userRouter := router.Group("/user")
 	userRouter.POST("/create", userController.CreateUser())
 	userRouter.POST("/get_code", userController.GetCode())

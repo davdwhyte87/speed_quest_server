@@ -3,6 +3,7 @@ package controllers
 import (
 	// "context"
 
+	"os"
 	"speed_quest_server/configs"
 	"speed_quest_server/dao"
 	"speed_quest_server/models"
@@ -152,6 +153,15 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 			return
 		}
 
+		// send user welcome email
+		if !userController.sendWelcomeEmail(newUser) {
+			c.JSON(http.StatusOK, responses.UserResponse{
+				Status:  http.StatusOK,
+				Data:    map[string]interface{}{"data": "OK"},
+				Message: "User created, email send error",
+			})
+		}
+
 		// return data
 		c.JSON(http.StatusOK, responses.UserResponse{
 			Status:  http.StatusOK,
@@ -160,6 +170,22 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 		})
 
 	}
+}
+
+
+func (usc *UserController) sendWelcomeEmail(user models.User) bool{
+	data := utils.EmailData{}
+	data.ContentData = map[string]interface{}{"Name": user.UserName, "Code": user.Code, "URL":os.Getenv("API_URL")}
+	data.EmailTo = user.Email
+	data.Template ="welcome_email/welcome_email.html"
+	data.Title ="Welcome To SpeedQuest"
+
+	err :=utils.SendEmail(data)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 // this function helps a user get his authentication code via mail

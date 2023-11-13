@@ -2,12 +2,14 @@ package controllers
 
 import (
 	"net/http"
+	"os"
 	"speed_quest_server/dao"
 	"speed_quest_server/requests"
 	"speed_quest_server/responses"
 	"speed_quest_server/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/resendlabs/resend-go"
 )
 
 type PlayerStatContoller struct {
@@ -129,6 +131,30 @@ func (psc *PlayerStatContoller) GetLeaderBoard() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, responses.GenericResponse{
 			Status:  http.StatusOK,
 			Data:    map[string]interface{}{"data": stats},
+			Message: "ok",
+		})	
+	}
+}
+
+
+func (psc *PlayerStatContoller) TestEmail() gin.HandlerFunc{
+	return func(ctx *gin.Context) {
+		client := resend.NewClient(os.Getenv("EMAIL_API_KEY"))
+		params := &resend.SendEmailRequest{
+			From:        "Kura <team@kuragames.com>",
+			To:          []string{"vhenngames@gmail.com"},
+			Text:        "Hello from kura team. We want to work with you now.",
+			Subject:     "Kura Team Intro",
+		}
+		sent, err := client.Emails.Send(params)
+		if err != nil {
+			panic(err)
+		}
+		println(sent.Id)
+
+		ctx.JSON(http.StatusOK, responses.GenericResponse{
+			Status:  http.StatusOK,
+			Data:    nil,
 			Message: "ok",
 		})	
 	}
