@@ -2,8 +2,8 @@ package utils
 
 import (
 	"bytes"
-	"os"
 	"html/template"
+	"os"
 
 	"github.com/resendlabs/resend-go"
 )
@@ -16,7 +16,10 @@ type EmailData struct {
 }
 
 func SendEmail(data EmailData) error {
-	
+	if os.Getenv("ENV") == "development" {
+		println(data.Title)
+		return nil
+	}
 	var err error
 	template, err := template.ParseFiles("utils/html_templates/" + data.Template)
 	if err != nil {
@@ -31,8 +34,8 @@ func SendEmail(data EmailData) error {
 	params := &resend.SendEmailRequest{
 		From:    "Kura <team@kuragames.com>",
 		To:      []string{data.EmailTo},
-		Html:   buf.String(),
-		Subject: "Welcome To SpeedQuest",
+		Html:    buf.String(),
+		Subject: data.Title,
 	}
 	sent, err := client.Emails.Send(params)
 	if err != nil {

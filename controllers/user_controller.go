@@ -10,6 +10,7 @@ import (
 	"speed_quest_server/requests"
 	"speed_quest_server/responses"
 	"speed_quest_server/utils"
+	"strconv"
 	"time"
 
 	// "time"
@@ -120,7 +121,7 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 		wallet.Email = newUser.Email
 		wallet.Version = 0.1
 		// create new block
-		var block models.Block 
+		var block models.Block
 		block.Amount = 0
 		block.Date = time.Now().String()
 		block.Id = uuid.NewString()
@@ -128,9 +129,9 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 		block.ReceiverAddress = wallet.Address
 		block.SenderAddress = "000000000000"
 
-		// add block to wallet blocks 
+		// add block to wallet blocks
 		wallet.Blocks = append(wallet.Blocks, block)
-		
+
 		err = userController.FactoryDAO.Insert(models.WalletCollection, wallet)
 		if err != nil {
 			utils.Logger.Error().Msg(err.Error())
@@ -172,15 +173,14 @@ func (userController *UserController) CreateUser() gin.HandlerFunc {
 	}
 }
 
-
-func (usc *UserController) sendWelcomeEmail(user models.User) bool{
+func (usc *UserController) sendWelcomeEmail(user models.User) bool {
 	data := utils.EmailData{}
-	data.ContentData = map[string]interface{}{"Name": user.UserName, "Code": user.Code, "URL":os.Getenv("API_URL")}
+	data.ContentData = map[string]interface{}{"Name": user.UserName, "Code": user.Code, "URL": os.Getenv("API_URL")}
 	data.EmailTo = user.Email
-	data.Template ="welcome_email/welcome_email.html"
-	data.Title ="Welcome To SpeedQuest"
+	data.Template = "welcome_email/welcome_email.html"
+	data.Title = "Welcome To SpeedQuest"
 
-	err :=utils.SendEmail(data)
+	err := utils.SendEmail(data)
 	if err != nil {
 		return false
 	}
@@ -233,9 +233,16 @@ func (userController *UserController) GetCode() gin.HandlerFunc {
 			})
 			return
 		}
-		code := "00000"
-		println(code)
-		user.Code = code
+		code, err := utils.GenCode()
+		if err != nil {
+			utils.Logger.Error().Err(err)
+			c.JSON(http.StatusInternalServerError, responses.GenericResponse{
+				Status:  http.StatusInternalServerError,
+				Message: "Could not get code gen",
+				Data:    nil,
+			})
+		}
+		user.Code = strconv.Itoa(code)
 		// update the user with code in database
 		err = userController.UserDAO.UpdateByEmail(user.Email, user)
 		if err != nil {
@@ -248,12 +255,39 @@ func (userController *UserController) GetCode() gin.HandlerFunc {
 		}
 
 		// send the code to users email
+		if os.Getenv("ENV") == "production" {
+			// send user otp email
+			if !userController.sendGetCodeEmail(user) {
+				c.JSON(http.StatusOK, responses.UserResponse{
+					Status:  http.StatusOK,
+					Data:    map[string]interface{}{"data": "OK"},
+					Message: "User created, email send error",
+				})
+			}
+		}
+
 		c.JSON(http.StatusOK, responses.GenericResponse{
 			Status:  http.StatusOK,
 			Message: "Code sent to email",
 			Data:    nil,
 		})
 	}
+}
+
+// send email that helps user get auth code
+func (usc *UserController) sendGetCodeEmail(user models.User) bool {
+	data := utils.EmailData{}
+	data.ContentData = map[string]interface{}{"Name": user.UserName, "Code": user.Code, "URL": os.Getenv("API_URL")}
+	data.EmailTo = user.Email
+	data.Template = "login_code.html"
+	data.Title = "Login Code"
+
+	err := utils.SendEmail(data)
+	if err != nil {
+		return false
+	}
+
+	return true
 }
 
 // helps users login with email and code
@@ -328,14 +362,13 @@ func (userController *UserController) Login() gin.HandlerFunc {
 
 		c.JSON(http.StatusOK, responses.GenericResponse{
 			Status:  http.StatusOK,
-			Data:    map[string]interface{}{"token": token, "user":user.Safe()},
+			Data:    map[string]interface{}{"token": token, "user": user.Safe()},
 			Message: "Logged in!",
 		})
 	}
 }
 
-
-// get user data for a logged in user 
+// get user data for a logged in user
 func (uc *UserController) GetUser() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		// get user id

@@ -47,7 +47,7 @@ func Routes(router *gin.Engine) {
 	userAuthRouter.GET("/get", userController.GetUser())
 
 	playerStatsRouter := router.Group("/stats")
-	playerStatsRouter.POST("/update/:id", playerStatContoller.UpdatePlayerStats())
+	playerStatsRouter.Use(middlewares.PlayerAuth(*AuthDAO)).POST("/update", playerStatContoller.UpdatePlayerStats())
 	playerStatsRouter.Use(middlewares.PlayerAuth(*AuthDAO)).GET("/get", playerStatContoller.GetPlayerStat())
 
 	walletRouter := router.Group("/wallet")

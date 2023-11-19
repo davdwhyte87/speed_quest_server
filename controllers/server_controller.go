@@ -14,12 +14,15 @@ type ServerController struct {
 // chekc if there is a new version
 func (sc *ServerController) GetLatestAndroidAppVersion() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
+		// TODO Send app download link
+		latestAPKDownloadLink := os.Getenv("LATEST_ANDROID_APP_LINK")
+
 		// get android app version
 		latestAndroidAppVersion := os.Getenv("LATEST_ANDROID_APP_VERSION")
 		ctx.JSON(http.StatusOK, responses.GenericResponse{
 			Status:  http.StatusOK,
 			Message: "Ok",
-			Data:    map[string]interface{}{"data": latestAndroidAppVersion},
+			Data:    map[string]interface{}{"data": latestAndroidAppVersion, "link":latestAPKDownloadLink},
 		})
 	}
 }
